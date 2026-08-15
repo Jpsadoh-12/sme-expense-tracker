@@ -15,7 +15,7 @@ function App() {
   const [typeFilter,setTypeFilter]=useState("all");
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState("");
-
+  const [menuOpen, setMenuOpen] = useState(false);
   async function load() {
     try {
       setError("");
