@@ -51,11 +51,52 @@ function App() {
 
     <main className="main">
       <header className="topbar">
-        <button className="mobile-menu"><Menu size={22}/></button>
+        <button className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)}
+>
+  <Menu size={22} />
+</button>
         <div><p className="eyebrow">Business Finance</p><h1>{active}</h1></div>
         <button className="primary" onClick={()=>{setEditing(null);setShowForm(true)}}><Plus size={18}/> Add transaction</button>
       </header>
+{menuOpen && (
+  <div className="mobile-menu-panel">
+    <button onClick={() => {
+      setEditing(null);
+      setShowForm(true);
+      setMenuOpen(false);
+    }}>
+      <Plus size={18} /> Add New Transaction
+    </button>
 
+    <button onClick={() => {
+      setActive("Dashboard");
+      setMenuOpen(false);
+    }}>
+      <LayoutDashboard size={18} /> Dashboard
+    </button>
+
+    <button onClick={() => {
+      setActive("Transactions");
+      setMenuOpen(false);
+    }}>
+      <Receipt size={18} /> Transactions
+    </button>
+
+    <button onClick={() => {
+      setActive("Reports");
+      setMenuOpen(false);
+    }}>
+      <PieChart size={18} /> Reports
+    </button>
+
+    <button onClick={() => {
+      setActive("Settings");
+      setMenuOpen(false);
+    }}>
+      <Settings size={18} /> Settings
+    </button>
+  </div>
+)}
       {error && <div className="error">Unable to reach the backend: {error}<button onClick={load}>Retry</button></div>}
       {loading ? <div className="panel empty">Loading your business data…</div> : <>
         {active==="Dashboard" && <><section className="cards">
