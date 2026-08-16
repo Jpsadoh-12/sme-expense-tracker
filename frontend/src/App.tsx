@@ -88,13 +88,6 @@ function App() {
     }}>
       <PieChart size={18} /> Reports
     </button>
-
-    <button onClick={() => {
-      setActive("Settings");
-      setMenuOpen(false);
-    }}>
-      <Settings size={18} /> Settings
-    </button>
   </div>
 )}
       {error && <div className="error">Unable to reach the backend: {error}<button onClick={load}>Retry</button></div>}
