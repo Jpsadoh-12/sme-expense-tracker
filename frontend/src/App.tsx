@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { BarChart3, WalletCards, ArrowDownToLine, ArrowUpFromLine, Plus, Trash2, Pencil, Search, LayoutDashboard, Receipt, PieChart, Settings, Menu, TrendingUp, TrendingDown, X } from "lucide-react";
+import { BarChart3, WalletCards, ArrowDownToLine, ArrowUpFromLine, Plus, Trash2, Pencil, Search, LayoutDashboard, Receipt, PieChart, Menu, TrendingUp, TrendingDown, X } from "lucide-react";
 import { api, Transaction, Summary } from "./api";
 
 const naira = (n:number) => `₦${n.toLocaleString("en-NG",{maximumFractionDigits:0})}`;
@@ -44,7 +44,7 @@ function App() {
   return <div className="app">
     <aside className="sidebar">
       <div className="brand"><div className="brand-mark">₦</div><div><strong>ExpenseTrack</strong><span>SME Finance</span></div></div>
-      <nav>{[["Dashboard",LayoutDashboard],["Transactions",Receipt],["Reports",PieChart],["Settings",Settings]].map(([label,Icon]:any)=>
+      <nav>{[["Dashboard",LayoutDashboard],["Transactions",Receipt],["Reports",PieChart]].map(([label,Icon]:any)=>
         <button className={active===label?"nav active":"nav"} onClick={()=>setActive(label)} key={label}><Icon size={19}/>{label}</button>)}</nav>
       <div className="side-note"><strong>Built for Nigerian SMEs</strong><span>Track your business money in ₦.</span></div>
     </aside>
