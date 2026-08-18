@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { BarChart3, WalletCards, ArrowDownToLine, ArrowUpFromLine, Plus, Trash2, Pencil, Search, LayoutDashboard, Receipt, PieChart, Menu, TrendingUp, TrendingDown, X } from "lucide-react";
 import { api, Transaction, Summary } from "./api";
 
