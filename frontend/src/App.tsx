@@ -65,6 +65,12 @@ const [authMode, setAuthMode] = useState<"login" | "register">("login");
     setError(e.message || "Authentication failed");
   }
   }
+  function handleLogout() {
+  localStorage.removeItem("sme_token");
+  setUser(null);
+  setAuthMode("login");
+  setError("");
+  }
   useEffect(() => {
   if (user) load();
 }, [user]);
@@ -163,6 +169,9 @@ if (!user) {
 </button>
         <div><p className="eyebrow">Business Finance</p><h1>{active}</h1></div>
         <button className="primary" onClick={()=>{setEditing(null);setShowForm(true)}}><Plus size={18}/> Add transaction</button>
+        <button className="logout-btn" onClick={handleLogout}>
+  Log out
+</button>
       </header>
 {menuOpen && (
   <div className="mobile-menu-panel">
