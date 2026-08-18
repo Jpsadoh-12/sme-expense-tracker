@@ -70,6 +70,67 @@ app.post("/api/auth/register", async (req, res) => {
     });
   }
 });
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email and password are required",
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const result = await pool.query(
+      "SELECT id, name, email, password_hash FROM users WHERE email = $1",
+      [normalizedEmail]
+    );
+
+    if (!result.rows.length) {
+      return res.status(401).json({
+        message: "Invalid email or password",
+      });
+    }
+
+    const user = result.rows[0];
+
+    const validPassword = await bcrypt.compare(
+      password,
+      user.password_hash
+    );
+
+    if (!validPassword) {
+      return res.status(401).json({
+        message: "Invalid email or password",
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        email: user.email,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({
+      message: "Could not log in",
+    });
+  }
+});
 app.get("/api/health", async (_req, res) => {
   try {
     await pool.query("SELECT 1");
