@@ -16,6 +16,7 @@ function App() {
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [user, setUser] = useState<{id:number; name:string; email:string} | null>(null);
 const [authMode, setAuthMode] = useState<"login" | "register">("login");
   async function load() {
