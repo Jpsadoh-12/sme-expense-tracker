@@ -81,7 +81,70 @@ const [authMode, setAuthMode] = useState<"login" | "register">("login");
     if(!confirm("Delete this transaction?")) return;
     try { await api.remove(id); await load(); } catch(e:any){alert(e.message);}
   }
+if (!user) {
+  return (
+    <div className="auth-page">
+      <form className="auth-card" onSubmit={handleAuth}>
+        <div className="brand">
+          <div className="brand-mark">₦</div>
+          <div>
+            <strong>ExpenseTrack</strong>
+            <span>SME Finance</span>
+          </div>
+        </div>
 
+        <h1>{authMode === "login" ? "Welcome back" : "Create your account"}</h1>
+        <p>
+          {authMode === "login"
+            ? "Log in to manage your business finances."
+            : "Create an account to start tracking your business finances."}
+        </p>
+
+        {authMode === "register" && (
+          <label>
+            Name
+            <input name="name" type="text" required placeholder="Your name" />
+          </label>
+        )}
+
+        <label>
+          Email
+          <input name="email" type="email" required placeholder="you@example.com" />
+        </label>
+
+        <label>
+          Password
+          <input
+            name="password"
+            type="password"
+            required
+            minLength={6}
+            placeholder="At least 6 characters"
+          />
+        </label>
+
+        {error && <div className="error">{error}</div>}
+
+        <button className="primary wide" type="submit">
+          {authMode === "login" ? "Log in" : "Create account"}
+        </button>
+
+        <button
+          type="button"
+          className="text-btn"
+          onClick={() => {
+            setError("");
+            setAuthMode(authMode === "login" ? "register" : "login");
+          }}
+        >
+          {authMode === "login"
+            ? "Don't have an account? Create one"
+            : "Already have an account? Log in"}
+        </button>
+      </form>
+    </div>
+  );
+}
   return <div className="app">
     <aside className="sidebar">
       <div className="brand"><div className="brand-mark">₦</div><div><strong>ExpenseTrack</strong><span>SME Finance</span></div></div>
