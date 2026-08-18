@@ -172,7 +172,7 @@ if (!user) {
         <button className="primary" onClick={()=>{setEditing(null);setShowForm(true)}}><Plus size={18}/> Add transaction</button>
         <button
   className="profile-btn"
-  onClick={() => setMenuOpen(!menuOpen)}
+  onClick={() => setAccountOpen(!accountOpen))}
   aria-label="Account"
   title="Account"
 >
