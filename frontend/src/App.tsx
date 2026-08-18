@@ -26,6 +26,45 @@ const [authMode, setAuthMode] = useState<"login" | "register">("login");
     } catch(e:any) { setError(e.message || "Could not connect to the API."); }
     finally { setLoading(false); }
   }
+  async function handleAuth(e: React.FormEvent<HTMLFormElement>) {
+  e.preventDefault();
+
+  const form = new FormData(e.currentTarget);
+  const name = String(form.get("name") || "");
+  const email = String(form.get("email") || "");
+  const password = String(form.get("password") || "");
+
+  try {
+    setError("");
+
+    const endpoint =
+      authMode === "register"
+        ? "/auth/register"
+        : "/auth/login";
+
+    const response = await fetch(`${API}${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(
+        authMode === "register"
+          ? { name, email, password }
+          : { email, password }
+      ),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Authentication failed");
+    }
+
+    localStorage.setItem("sme_token", data.token || "");
+    setUser(data.user);
+
+  } catch (e: any) {
+    setError(e.message || "Authentication failed");
+  }
+  }
   useEffect(()=>{load()},[]);
 
   const filtered = useMemo(()=>transactions
