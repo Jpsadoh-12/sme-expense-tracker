@@ -65,7 +65,9 @@ const [authMode, setAuthMode] = useState<"login" | "register">("login");
     setError(e.message || "Authentication failed");
   }
   }
-  useEffect(()=>{load()},[]);
+  useEffect(() => {
+  if (user) load();
+}, [user]);
 
   const filtered = useMemo(()=>transactions
     .filter(t=>typeFilter==="all" || t.type===typeFilter)
