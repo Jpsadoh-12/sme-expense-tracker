@@ -21,7 +21,55 @@ const mapTransaction = (row) => ({
   amount: Number(row.amount),
   date: row.transaction_date.toISOString().slice(0, 10),
 });
+app.post("/api/auth/register", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
 
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        message: "Name, email and password are required",
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        message: "Password must be at least 6 characters",
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const existing = await pool.query(
+      "SELECT id FROM users WHERE email = $1",
+      [normalizedEmail]
+    );
+
+    if (existing.rows.length) {
+      return res.status(409).json({
+        message: "An account with this email already exists",
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    const result = await pool.query(
+      `INSERT INTO users (name, email, password_hash)
+       VALUES ($1, $2, $3)
+       RETURNING id, name, email`,
+      [name.trim(), normalizedEmail, passwordHash]
+    );
+
+    res.status(201).json({
+      message: "Account created successfully",
+      user: result.rows[0],
+    });
+  } catch (error) {
+    console.error("Registration error:", error);
+    res.status(500).json({
+      message: "Could not create account",
+    });
+  }
+});
 app.get("/api/health", async (_req, res) => {
   try {
     await pool.query("SELECT 1");
