@@ -80,12 +80,24 @@ const [authMode, setAuthMode] = useState<"login" | "register">("login");
     .filter(t=>typeFilter==="all" || t.type===typeFilter)
     .filter(t=>`${t.description} ${t.category}`.toLowerCase().includes(query.toLowerCase())),[transactions,typeFilter,query]);
 
-  async function save(t:Omit<Transaction,"id">) {
-    try {
-      if(editing) await api.update(editing.id,t); else await api.create(t);
-      setShowForm(false); setEditing(null); await load();
-    } catch(e:any) { alert(e.message || "Could not save transaction."); }
+  async function save(t: Omit<Transaction, "id">) {
+  try {
+    if (editing) {
+      await api.update(editing.id, t);
+    } else {
+      await api.create(t);
+    }
+
+    setShowForm(false);
+    setEditing(null);
+    await load();
+  } catch (e: any) {
+    console.error("TRANSACTION ERROR:", e);
+    alert(
+      `Could not create transaction.\n\n${e?.message || "Unknown error"}`
+    );
   }
+}
   async function remove(id:string) {
     if(!confirm("Delete this transaction?")) return;
     try { await api.remove(id); await load(); } catch(e:any){alert(e.message);}
