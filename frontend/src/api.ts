@@ -25,7 +25,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   ...(token ? { Authorization: `Bearer ${token}` } : {}),
   ...(options?.headers || {})
 }
-  if (!res.ok) {
+   (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.message || "Request failed");
   }
