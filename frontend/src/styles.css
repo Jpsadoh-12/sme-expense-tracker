@@ -97,3 +97,75 @@
     display: none;
   }
 }
+/* =========================
+   AUTHENTICATION
+   ========================= */
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #f5f7fb;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 430px;
+  padding: 32px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.08);
+}
+
+.auth-card .brand {
+  margin-bottom: 28px;
+}
+
+.auth-card h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+}
+
+.auth-card > p {
+  margin: 0 0 24px;
+  color: #667085;
+  line-height: 1.5;
+}
+
+.auth-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.auth-card input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 14px;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  font: inherit;
+  outline: none;
+}
+
+.auth-card input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.auth-card .wide {
+  width: 100%;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.auth-card .text-btn {
+  width: 100%;
+  margin-top: 14px;
+  justify-content: center;
+}
