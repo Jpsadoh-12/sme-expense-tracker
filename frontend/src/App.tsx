@@ -211,6 +211,25 @@ if (!user) {
     </button>
   </div>
 )}
+      {accountOpen && (
+  <div className="account-menu">
+    <div className="account-info">
+      <UserCircle size={36} />
+      <div>
+        <strong>{user?.name}</strong>
+        <span>{user?.email}</span>
+      </div>
+    </div>
+
+    <button onClick={handleLogout}>
+      Log out
+    </button>
+
+    <button className="danger" onClick={() => alert("Account deletion will be added next.")}>
+      Delete account
+    </button>
+  </div>
+)}
       {error && <div className="error">Unable to reach the backend: {error}<button onClick={load}>Retry</button></div>}
       {loading ? <div className="panel empty">Loading your business data…</div> : <>
         {active==="Dashboard" && <><section className="cards">
