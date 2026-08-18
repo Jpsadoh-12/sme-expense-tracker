@@ -228,7 +228,28 @@ app.post("/api/auth/login", async (req, res) => {
     });
   }
 });
+app.delete("/api/auth/account", authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "DELETE FROM users WHERE id = $1",
+      [req.user.userId]
+    );
 
+    if (!result.rowCount) {
+      return res.status(404).json({
+        message: "Account not found",
+      });
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    console.error("Account deletion error:", error);
+
+    res.status(500).json({
+      message: "Could not delete account",
+    });
+  }
+});
 /* =========================
    HEALTH
 ========================= */
