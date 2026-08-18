@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { BarChart3, WalletCards, ArrowDownToLine, ArrowUpFromLine, Plus, Trash2, Pencil, Search, LayoutDashboard, Receipt, PieChart, Menu, TrendingUp, TrendingDown, X } from "lucide-react";
+import { BarChart3, WalletCards, ArrowDownToLine, ArrowUpFromLine, Plus, Trash2, Pencil, Search, LayoutDashboard, Receipt, PieChart, Menu, TrendingUp, TrendingDown, X, UserCircle } from "lucide-react";
 import { api, API, Transaction, Summary } from "./api";
 
 const naira = (n:number) => `₦${n.toLocaleString("en-NG",{maximumFractionDigits:0})}`;
@@ -169,8 +169,13 @@ if (!user) {
 </button>
         <div><p className="eyebrow">Business Finance</p><h1>{active}</h1></div>
         <button className="primary" onClick={()=>{setEditing(null);setShowForm(true)}}><Plus size={18}/> Add transaction</button>
-        <button className="logout-btn" onClick={handleLogout}>
-  Log out
+        <button
+  className="profile-btn"
+  onClick={() => setMenuOpen(!menuOpen)}
+  aria-label="Account"
+  title="Account"
+>
+  <UserCircle size={26} />
 </button>
       </header>
 {menuOpen && (
