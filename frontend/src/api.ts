@@ -18,10 +18,13 @@ export type Summary = {
 };
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const token = localStorage.getItem("sme_token");
   const res = await fetch(`${API}${path}`, {
-    headers: { "Content-Type": "application/json", ...(options?.headers || {}) },
-    ...options
-  });
+    headers: {
+  "Content-Type": "application/json",
+  ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  ...(options?.headers || {})
+},
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.message || "Request failed");
