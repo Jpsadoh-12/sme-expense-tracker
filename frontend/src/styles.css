@@ -598,27 +598,32 @@ td b {
 }
 
 /* ================================
-   MOBILE MENU
+   MOBILE MENU BUTTON
    ================================ */
 
 .mobile-menu {
   display: none;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   padding: 0;
-  border: none;
-  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 9px;
   background: #fff;
   color: #111827;
+  flex-shrink: 0;
 }
+
+/* ================================
+   MOBILE MENU DROPDOWN
+   ================================ */
 
 .mobile-menu-panel {
   position: absolute;
-  top: 72px;
-  left: 40px;
-  right: 40px;
+  top: 68px;
+  left: 35px;
+  right: 35px;
   z-index: 1500;
 
   display: flex;
@@ -629,7 +634,7 @@ td b {
 
   background: #fff;
   border: 1px solid #e5e7eb;
-  border-radius: 14px;
+  border-radius: 12px;
 
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
 }
@@ -640,22 +645,22 @@ td b {
   align-items: center;
   gap: 10px;
 
-  padding: 11px 13px;
+  padding: 10px 12px;
 
   border: none;
-  border-radius: 9px;
+  border-radius: 8px;
 
   background: transparent;
   color: #1f2937;
 
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   text-align: left;
 }
 
 .mobile-menu-panel button svg {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   flex-shrink: 0;
 }
 
@@ -668,8 +673,8 @@ td b {
    ================================ */
 
 .profile-btn {
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   padding: 0;
 
   display: flex;
@@ -681,11 +686,13 @@ td b {
 
   background: #fff;
   color: #111827;
+
+  flex-shrink: 0;
 }
 
 .profile-btn svg {
-  width: 24px;
-  height: 24px;
+  width: 23px;
+  height: 23px;
 }
 
 /* ================================
@@ -694,16 +701,16 @@ td b {
 
 .account-menu {
   position: absolute;
-  top: 58px;
+  top: 54px;
   right: 0;
 
-  width: 250px;
+  width: 240px;
 
   background: #fff;
   border: 1px solid #e5e7eb;
-  border-radius: 14px;
+  border-radius: 12px;
 
-  padding: 12px;
+  padding: 10px;
 
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.13);
 
@@ -713,17 +720,17 @@ td b {
 .account-info {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
 
-  padding: 5px 5px 12px;
+  padding: 5px 5px 11px;
   margin-bottom: 5px;
 
   border-bottom: 1px solid #e5e7eb;
 }
 
 .account-info svg {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   flex-shrink: 0;
   color: #2563eb;
 }
@@ -736,13 +743,13 @@ td b {
 }
 
 .account-info strong {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.2;
   color: #172033;
 }
 
 .account-info span {
-  font-size: 12px;
+  font-size: 11px;
   color: #6b7280;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -753,10 +760,10 @@ td b {
   width: 100%;
   border: none;
   background: transparent;
-  padding: 10px 8px;
+  padding: 9px 8px;
   border-radius: 8px;
   text-align: left;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .account-menu button:hover {
@@ -888,7 +895,7 @@ td b {
   }
 
   .topbar {
-    gap: 10px;
+    gap: 8px;
   }
 
   .topbar h1 {
@@ -896,7 +903,7 @@ td b {
   }
 
   .topbar .primary {
-    padding: 10px 11px;
+    padding: 9px 10px;
     font-size: 12px;
   }
 
@@ -912,3 +919,67 @@ td b {
 
   .stat strong {
     font-size: 16px;
+  }
+
+  .stat-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .panel {
+    padding: 15px;
+  }
+
+  .filters {
+    flex-direction: column;
+  }
+
+  .table-wrap {
+    margin: 0 -5px;
+  }
+
+  .panel-head {
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .mobile-menu-panel {
+    top: 64px;
+    left: 35px;
+    right: 35px;
+  }
+
+  .account-menu {
+    top: 52px;
+    right: 0;
+    width: 230px;
+  }
+
+  .profile-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .profile-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .auth-card {
+    padding: 24px;
+  }
+
+  .auth-card h1 {
+    font-size: 25px;
+  }
+}
+
+/* ================================
+   DESKTOP / TABLET
+   ================================ */
+
+@media (min-width: 651px) {
+  .mobile-menu-panel {
+    display: none;
+  }
+}
