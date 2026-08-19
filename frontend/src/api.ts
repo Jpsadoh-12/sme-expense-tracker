@@ -75,4 +75,9 @@ export const api = {
     request<void>(`/transactions/${id}`, {
       method: "DELETE",
     }),
+
+  deleteAccount: () =>
+    request<void>("/auth/account", {
+      method: "DELETE",
+    }),
 };
