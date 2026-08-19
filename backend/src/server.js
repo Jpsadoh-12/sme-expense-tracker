@@ -228,6 +228,36 @@ app.post("/api/auth/login", async (req, res) => {
     });
   }
 });
+/* =========================
+   AUTH - CURRENT USER
+========================= */
+
+app.get("/api/auth/me", authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, email
+       FROM users
+       WHERE id = $1`,
+      [req.user.userId]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      user: result.rows[0],
+    });
+  } catch (error) {
+    console.error("Current user error:", error);
+
+    res.status(500).json({
+      message: "Could not load user",
+    });
+  }
+});
 app.delete("/api/auth/account", authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
