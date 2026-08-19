@@ -1,4 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import {
   BarChart3,
   WalletCards,
@@ -17,32 +22,62 @@ import {
   X,
   UserCircle,
 } from "lucide-react";
-import { api, API, Transaction, Summary } from "./api";
+
+import {
+  api,
+  API,
+  Transaction,
+  Summary,
+} from "./api";
+
+const emptySummary: Summary = {
+  income: 0,
+  expenses: 0,
+  balance: 0,
+  transactions: 0,
+  categoryTotals: [],
+};
 
 const naira = (n: number) =>
-  `₦${n.toLocaleString("en-NG", { maximumFractionDigits: 0 })}`;
+  `₦${n.toLocaleString("en-NG", {
+    maximumFractionDigits: 0,
+  })}`;
 
 function App() {
   const [active, setActive] = useState("Dashboard");
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [summary, setSummary] = useState<Summary>({
-    income: 0,
-    expenses: 0,
-    balance: 0,
-    transactions: 0,
-    categoryTotals: [],
-  });
 
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<Transaction | null>(null);
-  const [query, setQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [transactions, setTransactions] =
+    useState<Transaction[]>([]);
 
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [accountOpen, setAccountOpen] = useState(false);
+  const [categories, setCategories] =
+    useState<string[]>([]);
+
+  const [summary, setSummary] =
+    useState<Summary>(emptySummary);
+
+  const [showForm, setShowForm] =
+    useState(false);
+
+  const [editing, setEditing] =
+    useState<Transaction | null>(null);
+
+  const [query, setQuery] =
+    useState("");
+
+  const [typeFilter, setTypeFilter] =
+    useState("all");
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  const [menuOpen, setMenuOpen] =
+    useState(false);
+
+  const [accountOpen, setAccountOpen] =
+    useState(false);
 
   const [user, setUser] = useState<{
     id: number;
@@ -50,93 +85,246 @@ function App() {
     email: string;
   } | null>(null);
 
-  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [authMode, setAuthMode] =
+    useState<"login" | "register">("login");
+
+  // -----------------------------------------
+  // LOAD BUSINESS DATA
+  // -----------------------------------------
 
   async function load() {
+    if (!user) return;
+
     try {
+      setLoading(true);
       setError("");
 
-      const [tx, cats, sum] = await Promise.all([
-        api.transactions(),
-        api.categories(),
-        api.summary(),
-      ]);
+      const [tx, cats, sum] =
+        await Promise.all([
+          api.transactions(),
+          api.categories(),
+          api.summary(),
+        ]);
 
       setTransactions(tx);
-      setCategories(cats.map((c) => c.name));
+      setCategories(
+        cats.map((c) => c.name)
+      );
       setSummary(sum);
     } catch (e: any) {
-      setError(e.message || "Could not connect to the API.");
+      setError(
+        e?.message ||
+          "Could not connect to the API."
+      );
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleAuth(e: React.FormEvent<HTMLFormElement>) {
+  // -----------------------------------------
+  // AUTHENTICATION
+  // -----------------------------------------
+
+  async function handleAuth(
+    e: React.FormEvent<HTMLFormElement>
+  ) {
     e.preventDefault();
 
-    const form = new FormData(e.currentTarget);
-    const name = String(form.get("name") || "");
-    const email = String(form.get("email") || "");
-    const password = String(form.get("password") || "");
+    const form = new FormData(
+      e.currentTarget
+    );
+
+    const name = String(
+      form.get("name") || ""
+    ).trim();
+
+    const email = String(
+      form.get("email") || ""
+    ).trim();
+
+    const password = String(
+      form.get("password") || ""
+    );
 
     try {
       setError("");
 
       const endpoint =
-        authMode === "register" ? "/auth/register" : "/auth/login";
+        authMode === "register"
+          ? "/auth/register"
+          : "/auth/login";
 
-      const response = await fetch(`${API}${endpoint}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(
-          authMode === "register"
-            ? { name, email, password }
-            : { email, password }
-        ),
-      });
+      const response = await fetch(
+        `${API}${endpoint}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify(
+            authMode === "register"
+              ? {
+                  name,
+                  email,
+                  password,
+                }
+              : {
+                  email,
+                  password,
+                }
+          ),
+        }
+      );
 
-      const data = await response.json();
+      const data =
+        await response
+          .json()
+          .catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Authentication failed");
+        throw new Error(
+          data.message ||
+            "Authentication failed"
+        );
       }
 
-      localStorage.setItem("sme_token", data.token || "");
+      if (!data.token || !data.user) {
+        throw new Error(
+          "Authentication succeeded but the server returned an invalid response."
+        );
+      }
 
-      // Make sure menus are closed after authentication
+      localStorage.setItem(
+        "sme_token",
+        data.token
+      );
+
       setAccountOpen(false);
       setMenuOpen(false);
+      setShowForm(false);
+      setEditing(null);
+      setActive("Dashboard");
+
       setUser(data.user);
     } catch (e: any) {
-      setError(e.message || "Authentication failed");
+      setError(
+        e?.message ||
+          "Authentication failed"
+      );
     }
   }
 
-  function handleLogout() {
-    localStorage.removeItem("sme_token");
+  // -----------------------------------------
+  // LOGOUT
+  // -----------------------------------------
 
-    // Close every menu when logging out
+  function handleLogout() {
+    localStorage.removeItem(
+      "sme_token"
+    );
+
     setAccountOpen(false);
     setMenuOpen(false);
+    setShowForm(false);
+    setEditing(null);
 
     setUser(null);
+
     setAuthMode("login");
+
     setError("");
+
     setTransactions([]);
     setCategories([]);
-    setSummary({
-      income: 0,
-      expenses: 0,
-      balance: 0,
-      transactions: 0,
-      categoryTotals: [],
-    });
+    setSummary(emptySummary);
+
+    setLoading(false);
   }
 
-  // Automatically close account/mobile menus whenever user is logged out
+  // -----------------------------------------
+  // DELETE ACCOUNT
+  // -----------------------------------------
+
+  async function handleDeleteAccount() {
+    const confirmed =
+      window.confirm(
+        "Are you sure you want to delete your account?\n\nYour account and all your transactions will be permanently deleted. This action cannot be undone."
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setError("");
+
+      const token =
+        localStorage.getItem(
+          "sme_token"
+        );
+
+      if (!token) {
+        throw new Error(
+          "Your session has expired. Please log in again."
+        );
+      }
+
+      const response =
+        await fetch(
+          `${API}/auth/account`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+      const data =
+        await response
+          .json()
+          .catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            "Could not delete account."
+        );
+      }
+
+      // Clear local session
+      localStorage.removeItem(
+        "sme_token"
+      );
+
+      setAccountOpen(false);
+      setMenuOpen(false);
+      setShowForm(false);
+      setEditing(null);
+
+      setUser(null);
+
+      setTransactions([]);
+      setCategories([]);
+      setSummary(emptySummary);
+
+      setAuthMode("register");
+      setActive("Dashboard");
+      setError("");
+      setLoading(false);
+    } catch (e: any) {
+      alert(
+        e?.message ||
+          "Could not delete account."
+      );
+    }
+  }
+
+  // -----------------------------------------
+  // CLOSE MENUS WHEN LOGGED OUT
+  // -----------------------------------------
+
   useEffect(() => {
     if (!user) {
       setAccountOpen(false);
@@ -144,30 +332,57 @@ function App() {
     }
   }, [user]);
 
+  // -----------------------------------------
+  // LOAD DATA AFTER LOGIN
+  // -----------------------------------------
+
   useEffect(() => {
     if (user) {
       load();
     }
   }, [user]);
 
+  // -----------------------------------------
+  // FILTER TRANSACTIONS
+  // -----------------------------------------
+
   const filtered = useMemo(
     () =>
       transactions
         .filter(
-          (t) => typeFilter === "all" || t.type === typeFilter
+          (t) =>
+            typeFilter === "all" ||
+            t.type === typeFilter
         )
         .filter((t) =>
           `${t.description} ${t.category}`
             .toLowerCase()
-            .includes(query.toLowerCase())
+            .includes(
+              query.toLowerCase()
+            )
         ),
-    [transactions, typeFilter, query]
+    [
+      transactions,
+      typeFilter,
+      query,
+    ]
   );
 
-  async function save(t: Omit<Transaction, "id">) {
+  // -----------------------------------------
+  // SAVE TRANSACTION
+  // -----------------------------------------
+
+  async function save(
+    t: Omit<Transaction, "id">
+  ) {
     try {
+      setError("");
+
       if (editing) {
-        await api.update(editing.id, t);
+        await api.update(
+          editing.id,
+          t
+        );
       } else {
         await api.create(t);
       }
@@ -177,37 +392,83 @@ function App() {
 
       await load();
     } catch (e: any) {
-      console.error("TRANSACTION ERROR:", e);
+      console.error(
+        "TRANSACTION ERROR:",
+        e
+      );
 
       alert(
         `Could not save transaction.\n\n${
-          e?.message || "Unknown error"
+          e?.message ||
+          "Unknown error"
         }`
       );
     }
   }
 
+  // -----------------------------------------
+  // DELETE TRANSACTION
+  // -----------------------------------------
+
   async function remove(id: string) {
-    if (!confirm("Delete this transaction?")) return;
+    const confirmed =
+      window.confirm(
+        "Delete this transaction?"
+      );
+
+    if (!confirmed) return;
 
     try {
+      setError("");
+
       await api.remove(id);
+
       await load();
     } catch (e: any) {
-      alert(e.message || "Could not delete transaction.");
+      alert(
+        e?.message ||
+          "Could not delete transaction."
+      );
     }
   }
+
+  // -----------------------------------------
+  // NAVIGATION HELPER
+  // -----------------------------------------
+
+  function navigate(
+    page: string
+  ) {
+    setActive(page);
+
+    setMenuOpen(false);
+    setAccountOpen(false);
+  }
+
+  // -----------------------------------------
+  // AUTH SCREEN
+  // -----------------------------------------
 
   if (!user) {
     return (
       <div className="auth-page">
-        <form className="auth-card" onSubmit={handleAuth}>
+        <form
+          className="auth-card"
+          onSubmit={handleAuth}
+        >
           <div className="brand">
-            <div className="brand-mark">₦</div>
+            <div className="brand-mark">
+              ₦
+            </div>
 
             <div>
-              <strong>ExpenseTrack</strong>
-              <span>SME Finance</span>
+              <strong>
+                ExpenseTrack
+              </strong>
+
+              <span>
+                SME Finance
+              </span>
             </div>
           </div>
 
@@ -223,13 +484,16 @@ function App() {
               : "Create an account to start tracking your business finances."}
           </p>
 
-          {authMode === "register" && (
+          {authMode ===
+            "register" && (
             <label>
               Name
+
               <input
                 name="name"
                 type="text"
                 required
+                autoComplete="name"
                 placeholder="Your name"
               />
             </label>
@@ -237,28 +501,44 @@ function App() {
 
           <label>
             Email
+
             <input
               name="email"
               type="email"
               required
+              autoComplete="email"
               placeholder="you@example.com"
             />
           </label>
 
           <label>
             Password
+
             <input
               name="password"
               type="password"
               required
               minLength={6}
+              autoComplete={
+                authMode ===
+                "login"
+                  ? "current-password"
+                  : "new-password"
+              }
               placeholder="At least 6 characters"
             />
           </label>
 
-          {error && <div className="error">{error}</div>}
+          {error && (
+            <div className="error">
+              {error}
+            </div>
+          )}
 
-          <button className="primary wide" type="submit">
+          <button
+            className="primary wide"
+            type="submit"
+          >
             {authMode === "login"
               ? "Log in"
               : "Create account"}
@@ -271,7 +551,8 @@ function App() {
               setError("");
 
               setAuthMode(
-                authMode === "login"
+                authMode ===
+                  "login"
                   ? "register"
                   : "login"
               );
@@ -286,48 +567,72 @@ function App() {
     );
   }
 
+  // -----------------------------------------
+  // MAIN APPLICATION
+  // -----------------------------------------
+
   return (
     <div className="app">
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark">₦</div>
+          <div className="brand-mark">
+            ₦
+          </div>
 
           <div>
-            <strong>ExpenseTrack</strong>
-            <span>SME Finance</span>
+            <strong>
+              ExpenseTrack
+            </strong>
+
+            <span>
+              SME Finance
+            </span>
           </div>
         </div>
 
         <nav>
           {[
-            ["Dashboard", LayoutDashboard],
-            ["Transactions", Receipt],
-            ["Reports", PieChart],
-          ].map(([label, Icon]: any) => (
-            <button
-              className={
-                active === label
-                  ? "nav active"
-                  : "nav"
-              }
-              onClick={() => {
-                setActive(label);
-
-                // Close all open menus
-                setAccountOpen(false);
-                setMenuOpen(false);
-              }}
-              key={label}
-            >
-              <Icon size={19} />
-              {label}
-            </button>
-          ))}
+            [
+              "Dashboard",
+              LayoutDashboard,
+            ],
+            [
+              "Transactions",
+              Receipt,
+            ],
+            [
+              "Reports",
+              PieChart,
+            ],
+          ].map(
+            ([label, Icon]: any) => (
+              <button
+                key={label}
+                className={
+                  active === label
+                    ? "nav active"
+                    : "nav"
+                }
+                onClick={() =>
+                  navigate(label)
+                }
+              >
+                <Icon size={19} />
+                {label}
+              </button>
+            )
+          )}
         </nav>
 
         <div className="side-note">
-          <strong>Built for Nigerian SMEs</strong>
-          <span>Track your business money in ₦.</span>
+          <strong>
+            Built for Nigerian SMEs
+          </strong>
+
+          <span>
+            Track your business
+            money in ₦.
+          </span>
         </div>
       </aside>
 
@@ -336,18 +641,25 @@ function App() {
           <button
             className="mobile-menu"
             onClick={() => {
-              setMenuOpen((open) => !open);
+              setMenuOpen(
+                (open) => !open
+              );
 
-              // Close account menu
               setAccountOpen(false);
             }}
             aria-label="Menu"
+            aria-expanded={
+              menuOpen
+            }
           >
             <Menu size={22} />
           </button>
 
           <div>
-            <p className="eyebrow">Business Finance</p>
+            <p className="eyebrow">
+              Business Finance
+            </p>
+
             <h1>{active}</h1>
           </div>
 
@@ -357,7 +669,6 @@ function App() {
               setEditing(null);
               setShowForm(true);
 
-              // Close account/mobile menus
               setAccountOpen(false);
               setMenuOpen(false);
             }}
@@ -369,26 +680,29 @@ function App() {
           <button
             className="profile-btn"
             onClick={() => {
-              // Toggle account menu
-              setAccountOpen((open) => !open);
+              setAccountOpen(
+                (open) => !open
+              );
 
-              // Close mobile menu
               setMenuOpen(false);
             }}
             aria-label="Account"
+            aria-expanded={
+              accountOpen
+            }
             title="Account"
           >
             <UserCircle size={26} />
           </button>
         </header>
 
+        {/* MOBILE MENU */}
         {menuOpen && (
           <div className="mobile-menu-panel">
             <button
               onClick={() => {
                 setEditing(null);
                 setShowForm(true);
-
                 setMenuOpen(false);
                 setAccountOpen(false);
               }}
@@ -398,36 +712,31 @@ function App() {
             </button>
 
             <button
-              onClick={() => {
-                setActive("Dashboard");
-
-                setMenuOpen(false);
-                setAccountOpen(false);
-              }}
+              onClick={() =>
+                navigate("Dashboard")
+              }
             >
-              <LayoutDashboard size={18} />
+              <LayoutDashboard
+                size={18}
+              />
               Dashboard
             </button>
 
             <button
-              onClick={() => {
-                setActive("Transactions");
-
-                setMenuOpen(false);
-                setAccountOpen(false);
-              }}
+              onClick={() =>
+                navigate(
+                  "Transactions"
+                )
+              }
             >
               <Receipt size={18} />
               Transactions
             </button>
 
             <button
-              onClick={() => {
-                setActive("Reports");
-
-                setMenuOpen(false);
-                setAccountOpen(false);
-              }}
+              onClick={() =>
+                navigate("Reports")
+              }
             >
               <PieChart size={18} />
               Reports
@@ -435,83 +744,119 @@ function App() {
           </div>
         )}
 
+        {/* ACCOUNT MENU */}
         {accountOpen && (
           <div className="account-menu">
             <div className="account-info">
-              <UserCircle size={36} />
+              <UserCircle
+                size={34}
+              />
 
               <div>
-                <strong>{user?.name}</strong>
-                <span>{user?.email}</span>
+                <strong>
+                  {user.name}
+                </strong>
+
+                <span>
+                  {user.email}
+                </span>
               </div>
             </div>
 
             <button
-              onClick={() => {
-                setAccountOpen(false);
-              }}
+              onClick={() =>
+                setAccountOpen(false)
+              }
             >
               Account
             </button>
 
-            <button onClick={handleLogout}>
+            <button
+              onClick={
+                handleLogout
+              }
+            >
               Log out
             </button>
 
             <button
               className="danger"
-              onClick={() => {
-                setAccountOpen(false);
-                alert(
-                  "Account deletion will be added next."
-                );
-              }}
+              onClick={
+                handleDeleteAccount
+              }
             >
               Delete account
             </button>
           </div>
         )}
 
+        {/* ERROR */}
         {error && (
           <div className="error">
-            Unable to reach the backend: {error}
-            <button onClick={load}>Retry</button>
+            Unable to reach the
+            backend: {error}
+
+            <button
+              onClick={load}
+            >
+              Retry
+            </button>
           </div>
         )}
 
+        {/* LOADING */}
         {loading ? (
           <div className="panel empty">
-            Loading your business data…
+            Loading your business
+            data…
           </div>
         ) : (
           <>
-            {active === "Dashboard" && (
+            {/* DASHBOARD */}
+            {active ===
+              "Dashboard" && (
               <>
                 <section className="cards">
                   <Stat
                     title="Total Income"
-                    value={naira(summary.income)}
-                    icon={<ArrowDownToLine />}
+                    value={naira(
+                      summary.income
+                    )}
+                    icon={
+                      <ArrowDownToLine />
+                    }
                     positive
                   />
 
                   <Stat
                     title="Total Expenses"
-                    value={naira(summary.expenses)}
-                    icon={<ArrowUpFromLine />}
+                    value={naira(
+                      summary.expenses
+                    )}
+                    icon={
+                      <ArrowUpFromLine />
+                    }
                   />
 
                   <Stat
                     title="Current Balance"
-                    value={naira(summary.balance)}
-                    icon={<WalletCards />}
+                    value={naira(
+                      summary.balance
+                    )}
+                    icon={
+                      <WalletCards />
+                    }
                     balance
                   />
 
                   <Stat
                     title="Transactions"
-                    value={String(summary.transactions)}
-                    icon={<BarChart3 />}
+                    value={String(
+                      summary.transactions
+                    )}
+                    icon={
+                      <BarChart3 />
+                    }
                   />
                 </section>
 
@@ -519,78 +864,125 @@ function App() {
                   <div className="panel">
                     <div className="panel-head">
                       <div>
-                        <h2>Recent transactions</h2>
+                        <h2>
+                          Recent
+                          transactions
+                        </h2>
+
                         <p>
-                          Your latest business activity
+                          Your latest
+                          business
+                          activity
                         </p>
                       </div>
 
                       <button
                         className="text-btn"
-                        onClick={() => {
-                          setActive("Transactions");
-                          setAccountOpen(false);
-                        }}
+                        onClick={() =>
+                          navigate(
+                            "Transactions"
+                          )
+                        }
                       >
                         View all
                       </button>
                     </div>
 
                     <TransactionTable
-                      items={filtered.slice(0, 6)}
+                      items={filtered.slice(
+                        0,
+                        6
+                      )}
                       onEdit={(t) => {
                         setEditing(t);
-                        setShowForm(true);
-                        setAccountOpen(false);
+                        setShowForm(
+                          true
+                        );
+                        setAccountOpen(
+                          false
+                        );
+                        setMenuOpen(
+                          false
+                        );
                       }}
-                      onDelete={remove}
+                      onDelete={
+                        remove
+                      }
                     />
                   </div>
 
                   <div className="panel">
                     <div className="panel-head">
                       <div>
-                        <h2>Expense breakdown</h2>
-                        <p>Current month</p>
+                        <h2>
+                          Expense
+                          breakdown
+                        </h2>
+
+                        <p>
+                          Current
+                          month
+                        </p>
                       </div>
                     </div>
 
                     <Bars
-                      items={summary.categoryTotals}
+                      items={
+                        summary.categoryTotals
+                      }
                     />
                   </div>
                 </section>
               </>
             )}
 
-            {active === "Transactions" && (
+            {/* TRANSACTIONS */}
+            {active ===
+              "Transactions" && (
               <section className="panel full">
                 <div className="panel-head">
                   <div>
-                    <h2>All transactions</h2>
+                    <h2>
+                      All
+                      transactions
+                    </h2>
+
                     <p>
-                      Search, filter and manage your entries
+                      Search,
+                      filter and
+                      manage your
+                      entries
                     </p>
                   </div>
                 </div>
 
                 <div className="filters">
                   <div className="search">
-                    <Search size={18} />
+                    <Search
+                      size={18}
+                    />
 
                     <input
                       value={query}
                       onChange={(e) =>
-                        setQuery(e.target.value)
+                        setQuery(
+                          e.target
+                            .value
+                        )
                       }
                       placeholder="Search description or category"
                     />
                   </div>
 
                   <select
-                    value={typeFilter}
+                    value={
+                      typeFilter
+                    }
                     onChange={(e) =>
-                      setTypeFilter(e.target.value)
+                      setTypeFilter(
+                        e.target
+                          .value
+                      )
                     }
                   >
                     <option value="all">
@@ -611,85 +1003,139 @@ function App() {
                   items={filtered}
                   onEdit={(t) => {
                     setEditing(t);
-                    setShowForm(true);
-                    setAccountOpen(false);
+                    setShowForm(
+                      true
+                    );
+                    setAccountOpen(
+                      false
+                    );
+                    setMenuOpen(
+                      false
+                    );
                   }}
-                  onDelete={remove}
+                  onDelete={
+                    remove
+                  }
                 />
               </section>
             )}
 
-            {active === "Reports" && (
+            {/* REPORTS */}
+            {active ===
+              "Reports" && (
               <section className="grid reports">
                 <div className="panel">
                   <div className="panel-head">
                     <div>
                       <h2>
-                        Monthly expense report
+                        Monthly
+                        expense
+                        report
                       </h2>
 
                       <p>
-                        Category totals for the current
+                        Category
+                        totals for
+                        the current
                         month
                       </p>
                     </div>
                   </div>
 
                   <div className="report-total">
-                    <span>Total expenses</span>
+                    <span>
+                      Total
+                      expenses
+                    </span>
 
                     <strong>
-                      {naira(summary.expenses)}
+                      {naira(
+                        summary.expenses
+                      )}
                     </strong>
                   </div>
 
                   <Bars
-                    items={summary.categoryTotals}
+                    items={
+                      summary.categoryTotals
+                    }
                   />
                 </div>
 
                 <div className="panel insights">
-                  <h2>Quick insights</h2>
+                  <h2>
+                    Quick
+                    insights
+                  </h2>
 
                   <Insight
-                    icon={<TrendingUp />}
+                    icon={
+                      <TrendingUp />
+                    }
                     label="Income"
-                    value={naira(summary.income)}
+                    value={naira(
+                      summary.income
+                    )}
                   />
 
                   <Insight
-                    icon={<TrendingDown />}
+                    icon={
+                      <TrendingDown />
+                    }
                     label="Expenses"
-                    value={naira(summary.expenses)}
+                    value={naira(
+                      summary.expenses
+                    )}
                   />
 
                   <Insight
-                    icon={<WalletCards />}
+                    icon={
+                      <WalletCards />
+                    }
                     label="Net balance"
-                    value={naira(summary.balance)}
+                    value={naira(
+                      summary.balance
+                    )}
                   />
                 </div>
               </section>
             )}
 
-            {active === "Settings" && (
+            {/* SETTINGS */}
+            {active ===
+              "Settings" && (
               <section className="panel full settings">
-                <h2>Settings</h2>
+                <h2>
+                  Settings
+                </h2>
 
                 <p>
-                  This version uses a PostgreSQL database
-                  through the Node.js API.
+                  This version
+                  uses a
+                  PostgreSQL
+                  database
+                  through the
+                  Node.js API.
                 </p>
 
                 <div className="setting-card">
                   <b>Currency</b>
-                  <span>Nigerian Naira (₦)</span>
+
+                  <span>
+                    Nigerian Naira
+                    (₦)
+                  </span>
                 </div>
 
                 <div className="setting-card">
-                  <b>Architecture</b>
+                  <b>
+                    Architecture
+                  </b>
+
                   <span>
-                    React → Express → PostgreSQL
+                    React →
+                    Express →
+                    PostgreSQL
                   </span>
                 </div>
               </section>
@@ -698,9 +1144,12 @@ function App() {
         )}
       </main>
 
+      {/* TRANSACTION MODAL */}
       {showForm && (
         <Modal
-          categories={categories}
+          categories={
+            categories
+          }
           editing={editing}
           onClose={() => {
             setShowForm(false);
@@ -712,6 +1161,10 @@ function App() {
     </div>
   );
 }
+
+// =========================================
+// STAT CARD
+// =========================================
 
 function Stat({
   title,
@@ -730,7 +1183,11 @@ function Stat({
     <div className="stat">
       <div
         className={`stat-icon ${
-          positive ? "green" : balance ? "blue" : ""
+          positive
+            ? "green"
+            : balance
+            ? "blue"
+            : ""
         }`}
       >
         {icon}
@@ -738,52 +1195,82 @@ function Stat({
 
       <div>
         <span>{title}</span>
-        <strong>{value}</strong>
+        <strong>
+          {value}
+        </strong>
       </div>
     </div>
   );
 }
 
+// =========================================
+// EXPENSE BARS
+// =========================================
+
 function Bars({
   items,
 }: {
-  items: { category: string; total: number }[];
+  items: {
+    category: string;
+    total: number;
+  }[];
 }) {
   const max = Math.max(
-    ...items.map((x) => x.total),
+    ...items.map(
+      (x) => x.total
+    ),
     1
   );
 
   return (
     <div className="bars">
       {items.length ? (
-        items.slice(0, 8).map((x) => (
-          <div className="bar-row" key={x.category}>
-            <div>
-              <span>{x.category}</span>
-              <b>{naira(x.total)}</b>
-            </div>
+        items
+          .slice(0, 8)
+          .map((x) => (
+            <div
+              className="bar-row"
+              key={x.category}
+            >
+              <div>
+                <span>
+                  {x.category}
+                </span>
 
-            <div className="track">
-              <i
-                style={{
-                  width: `${Math.max(
-                    6,
-                    (x.total / max) * 100
-                  )}%`,
-                }}
-              />
+                <b>
+                  {naira(
+                    x.total
+                  )}
+                </b>
+              </div>
+
+              <div className="track">
+                <i
+                  style={{
+                    width: `${Math.max(
+                      6,
+                      (x.total /
+                        max) *
+                        100
+                    )}%`,
+                  }}
+                />
+              </div>
             </div>
-          </div>
-        ))
+          ))
       ) : (
         <div className="empty">
-          No expense data available yet.
+          No expense data
+          available yet.
         </div>
       )}
     </div>
   );
 }
+
+// =========================================
+// INSIGHT
+// =========================================
 
 function Insight({
   icon,
@@ -800,11 +1287,17 @@ function Insight({
 
       <div>
         <b>{label}</b>
-        <span>{value}</span>
+        <span>
+          {value}
+        </span>
       </div>
     </div>
   );
 }
+
+// =========================================
+// TRANSACTION TABLE
+// =========================================
 
 function TransactionTable({
   items,
@@ -812,13 +1305,18 @@ function TransactionTable({
   onDelete,
 }: {
   items: Transaction[];
-  onEdit: (t: Transaction) => void;
-  onDelete: (id: string) => void;
+  onEdit: (
+    t: Transaction
+  ) => void;
+  onDelete: (
+    id: string
+  ) => void;
 }) {
   if (!items.length) {
     return (
       <div className="empty">
-        No transactions found.
+        No transactions
+        found.
       </div>
     );
   }
@@ -828,10 +1326,18 @@ function TransactionTable({
       <table>
         <thead>
           <tr>
-            <th>Description</th>
-            <th>Category</th>
+            <th>
+              Description
+            </th>
+
+            <th>
+              Category
+            </th>
+
             <th>Date</th>
+
             <th>Amount</th>
+
             <th></th>
           </tr>
         </thead>
@@ -840,46 +1346,77 @@ function TransactionTable({
           {items.map((t) => (
             <tr key={t.id}>
               <td>
-                <b>{t.description}</b>
-                <small>{t.type}</small>
+                <b>
+                  {t.description}
+                </b>
+
+                <small>
+                  {t.type}
+                </small>
               </td>
 
-              <td>{t.category}</td>
+              <td>
+                {t.category}
+              </td>
 
               <td>
                 {new Date(
-                  t.date + "T00:00:00"
-                ).toLocaleDateString("en-NG", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                })}
+                  `${t.date}T00:00:00`
+                ).toLocaleDateString(
+                  "en-NG",
+                  {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  }
+                )}
               </td>
 
               <td
                 className={
-                  t.type === "income"
+                  t.type ===
+                  "income"
                     ? "money income"
                     : "money expense"
                 }
               >
-                {t.type === "income" ? "+" : "-"}
-                {naira(t.amount)}
+                {t.type ===
+                "income"
+                  ? "+"
+                  : "-"}
+
+                {naira(
+                  t.amount
+                )}
               </td>
 
               <td>
                 <button
                   className="icon-btn"
-                  onClick={() => onEdit(t)}
+                  onClick={() =>
+                    onEdit(t)
+                  }
+                  aria-label="Edit transaction"
+                  title="Edit"
                 >
-                  <Pencil size={16} />
+                  <Pencil
+                    size={16}
+                  />
                 </button>
 
                 <button
                   className="icon-btn danger"
-                  onClick={() => onDelete(t.id)}
+                  onClick={() =>
+                    onDelete(
+                      t.id
+                    )
+                  }
+                  aria-label="Delete transaction"
+                  title="Delete"
                 >
-                  <Trash2 size={16} />
+                  <Trash2
+                    size={16}
+                  />
                 </button>
               </td>
             </tr>
@@ -890,65 +1427,138 @@ function TransactionTable({
   );
 }
 
+// =========================================
+// TRANSACTION MODAL
+// =========================================
+
 function Modal({
   editing,
   categories,
   onClose,
   onSave,
 }: {
-  editing: Transaction | null;
+  editing:
+    | Transaction
+    | null;
+
   categories: string[];
+
   onClose: () => void;
-  onSave: (t: Omit<Transaction, "id">) => void;
+
+  onSave: (
+    t: Omit<
+      Transaction,
+      "id"
+    >
+  ) => void;
 }) {
-  const [type, setType] = useState<
-    "income" | "expense"
-  >(editing?.type || "expense");
+  const [type, setType] =
+    useState<
+      "income" | "expense"
+    >(
+      editing?.type ||
+        "expense"
+    );
 
-  const [description, setDescription] = useState(
-    editing?.description || ""
+  const [
+    description,
+    setDescription,
+  ] = useState(
+    editing?.description ||
+      ""
   );
 
-  const [category, setCategory] = useState(
-    editing?.category ||
-      categories[0] ||
-      "Other"
-  );
+  const [category, setCategory] =
+    useState(
+      editing?.category ||
+        categories[0] ||
+        "Other"
+    );
 
-  const [amount, setAmount] = useState(
-    editing?.amount?.toString() || ""
-  );
+  const [amount, setAmount] =
+    useState(
+      editing?.amount?.toString() ||
+        ""
+    );
 
-  const [date, setDate] = useState(
-    editing?.date ||
-      new Date().toISOString().slice(0, 10)
-  );
+  const [date, setDate] =
+    useState(
+      editing?.date ||
+        new Date()
+          .toISOString()
+          .slice(0, 10)
+    );
 
-  function submit(e: React.FormEvent) {
+  function submit(
+    e: React.FormEvent
+  ) {
     e.preventDefault();
 
+    const numericAmount =
+      Number(amount);
+
     if (
-      !description.trim() ||
-      !amount ||
-      Number(amount) <= 0
+      !description.trim()
     ) {
-      return alert(
-        "Enter a description and valid amount."
+      alert(
+        "Enter a description."
       );
+      return;
+    }
+
+    if (
+      !Number.isFinite(
+        numericAmount
+      ) ||
+      numericAmount <= 0
+    ) {
+      alert(
+        "Enter a valid amount."
+      );
+      return;
+    }
+
+    if (!category) {
+      alert(
+        "Select a category."
+      );
+      return;
+    }
+
+    if (!date) {
+      alert(
+        "Select a date."
+      );
+      return;
     }
 
     onSave({
       type,
-      description: description.trim(),
+      description:
+        description.trim(),
       category,
-      amount: Number(amount),
+      amount:
+        numericAmount,
       date,
     });
   }
 
   return (
-    <div className="overlay">
-      <form className="modal" onSubmit={submit}>
+    <div
+      className="overlay"
+      onMouseDown={(e) => {
+        if (
+          e.target ===
+          e.currentTarget
+        ) {
+          onClose();
+        }
+      }}
+    >
+      <form
+        className="modal"
+        onSubmit={submit}
+      >
         <div className="modal-head">
           <div>
             <h2>
@@ -958,7 +1568,9 @@ function Modal({
             </h2>
 
             <p>
-              Record business income or expense.
+              Record business
+              income or
+              expense.
             </p>
           </div>
 
@@ -966,6 +1578,7 @@ function Modal({
             type="button"
             className="close"
             onClick={onClose}
+            aria-label="Close"
           >
             <X />
           </button>
@@ -975,12 +1588,15 @@ function Modal({
           <button
             type="button"
             className={
-              type === "expense"
+              type ===
+              "expense"
                 ? "selected"
                 : ""
             }
             onClick={() =>
-              setType("expense")
+              setType(
+                "expense"
+              )
             }
           >
             Expense
@@ -994,7 +1610,9 @@ function Modal({
                 : ""
             }
             onClick={() =>
-              setType("income")
+              setType(
+                "income"
+              )
             }
           >
             Income
@@ -1007,9 +1625,12 @@ function Modal({
           <input
             value={description}
             onChange={(e) =>
-              setDescription(e.target.value)
+              setDescription(
+                e.target.value
+              )
             }
             placeholder="e.g. Fuel purchase"
+            autoFocus
           />
         </label>
 
@@ -1019,9 +1640,13 @@ function Modal({
           <input
             type="number"
             min="1"
+            step="1"
+            inputMode="numeric"
             value={amount}
             onChange={(e) =>
-              setAmount(e.target.value)
+              setAmount(
+                e.target.value
+              )
             }
             placeholder="50000"
           />
@@ -1033,12 +1658,21 @@ function Modal({
           <select
             value={category}
             onChange={(e) =>
-              setCategory(e.target.value)
+              setCategory(
+                e.target.value
+              )
             }
           >
-            {categories.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
+            {categories.map(
+              (c) => (
+                <option
+                  key={c}
+                  value={c}
+                >
+                  {c}
+                </option>
+              )
+            )}
           </select>
         </label>
 
@@ -1049,7 +1683,9 @@ function Modal({
             type="date"
             value={date}
             onChange={(e) =>
-              setDate(e.target.value)
+              setDate(
+                e.target.value
+              )
             }
           />
         </label>
