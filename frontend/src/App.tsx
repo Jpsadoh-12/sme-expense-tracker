@@ -320,7 +320,46 @@ function App() {
       );
     }
   }
+// -----------------------------------------
+// RESTORE LOGIN AFTER PAGE REFRESH
+// -----------------------------------------
 
+useEffect(() => {
+  const token = localStorage.getItem("sme_token");
+
+  if (!token) {
+    setLoading(false);
+    return;
+  }
+
+  async function restoreSession() {
+    try {
+      const response = await fetch(`${API}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Session expired");
+      }
+
+      const data = await response.json();
+
+      if (!data.user) {
+        throw new Error("Invalid session");
+      }
+
+      setUser(data.user);
+    } catch {
+      localStorage.removeItem("sme_token");
+      setUser(null);
+      setLoading(false);
+    }
+  }
+
+  restoreSession();
+}, []);
   // -----------------------------------------
   // CLOSE MENUS WHEN LOGGED OUT
   // -----------------------------------------
